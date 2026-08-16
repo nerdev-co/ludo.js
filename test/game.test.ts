@@ -127,6 +127,52 @@ describe('game module', () => {
       expect(actions[0]?.dice).toBe(0);
       expect(findPossibleActions(state, 1)).toHaveLength(0);
     });
+
+    it('blocks ascending until the player has killed an enemy token', () => {
+      const state = stateWith({
+        tokens: [{ active: true, coord: [8, 15] }],
+        actions: [{ type: 'dice roll', rolled: [6], playerId: 0 }],
+        nextActionType: 'token action',
+        requireKillToAscend: true,
+      });
+
+      const actions = findPossibleActions(state, 0);
+
+      expect(actions).toHaveLength(3);
+      expect(actions.some((action) => action.tokenId === 0)).toBe(false);
+    });
+
+    it('allows ascending once the player has killed an enemy token', () => {
+      const state = stateWith({
+        tokens: [{ active: true, coord: [8, 15] }],
+        actions: [{ type: 'dice roll', rolled: [6], playerId: 0 }],
+        nextActionType: 'token action',
+        requireKillToAscend: true,
+        kills: [1, 0],
+      });
+
+      const actions = findPossibleActions(state, 0);
+
+      expect(actions.find((action) => action.tokenId === 0)?.verbs).toEqual([
+        'ascend',
+        'move',
+      ]);
+    });
+
+    it('still allows heaven moves that do not finish the ascent', () => {
+      const state = stateWith({
+        tokens: [{ active: true, coord: [8, 12] }],
+        actions: [{ type: 'dice roll', rolled: [2], playerId: 0 }],
+        nextActionType: 'token action',
+        requireKillToAscend: true,
+      });
+
+      const actions = findPossibleActions(state, 0);
+
+      expect(actions).toHaveLength(1);
+      expect(actions[0]?.verbs).toEqual(['move']);
+      expect(actions[0]?.moveToCoord).toEqual([8, 10]);
+    });
   });
 
   describe('updateState', () => {
@@ -227,6 +273,33 @@ describe('game module', () => {
       expect(updated.tokens[4]?.active).toBe(false);
       expect(updated.playerTurn).toBe(1);
       expect(updated.nextActionType).toBe('dice roll');
+    });
+
+    it('counts a kill for the player who performed it', () => {
+      const state = stateWith({
+        nextActionType: 'token action',
+        tokens: [
+          { active: true, coord: [7, 14] },
+          {},
+          {},
+          {},
+          { active: true, coord: [6, 9] },
+        ],
+        actions: [{ type: 'dice roll', rolled: [5], playerId: 0 }],
+      });
+
+      const action = createAction({
+        type: 'token action',
+        verbs: ['kill', 'move'],
+        moveToCoord: [6, 9],
+        tokenId: 0,
+        killedTokenId: 4,
+        dice: 0,
+      });
+
+      const updated = updateState(state, action);
+
+      expect(updated.kills).toEqual([1, 0]);
     });
 
     it('returns the state updated with an ascend action', () => {

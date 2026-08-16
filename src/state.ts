@@ -2,7 +2,7 @@ import type { Team, GameState, Player, Token, Action } from './types.ts';
 import { DICE_ROLL } from './constants.ts';
 import { TEAMS } from './constants.ts';
 
-export function createState(playerCount: number): GameState {
+export function createState(playerCount: number, requireKillToAscend = false): GameState {
   if (playerCount <= 0 || playerCount >= 5) {
     throw new Error('Cannot create game with the player count specified');
   }
@@ -28,6 +28,8 @@ export function createState(playerCount: number): GameState {
     nextActionType: DICE_ROLL,
     actions: [],
     playerTurn: 0,
+    kills: players.map(() => 0),
+    requireKillToAscend,
   };
 }
 

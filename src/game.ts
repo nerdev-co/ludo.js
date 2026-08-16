@@ -152,8 +152,15 @@ function possibleActionFor({
   const enemyToken = findEnemyTokenAtCoord(tokens, token.team, moveToCoord);
 
   const heavenEnd = heavenPath[heavenPath.length - 1];
+  const mayAscend =
+    state.requireKillToAscend === false ||
+    (state.kills[state.playerTurn] ?? 0) > 0;
 
   if (heavenEnd !== undefined && coordEquals(heavenEnd, moveToCoord)) {
+    if (!mayAscend) {
+      return undefined;
+    }
+
     verbs.push('ascend');
   }
 
@@ -236,11 +243,17 @@ const actionPerformers: Record<
       return state;
     }
 
-    return setIn(
-      setIn(state, ['tokens', action.killedTokenId, 'active'], false),
-      ['tokens', action.killedTokenId, 'coord'],
-      [0, 0]
-    );
+    const kills = [...state.kills];
+    kills[state.playerTurn] = (kills[state.playerTurn] ?? 0) + 1;
+
+    return {
+      ...setIn(
+        setIn(state, ['tokens', action.killedTokenId, 'active'], false),
+        ['tokens', action.killedTokenId, 'coord'],
+        [0, 0]
+      ),
+      kills,
+    };
   },
   ascend(action, state) {
     return setIn(

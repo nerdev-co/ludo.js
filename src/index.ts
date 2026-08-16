@@ -25,8 +25,16 @@ export function continueGame(state: GameState): Game {
   });
 }
 
-export function createGame({ playerCount }: { playerCount: number }): Game {
-  return continueGame(createState(playerCount));
+export interface CreateGameOptions {
+  readonly playerCount: number;
+  readonly requireKillToAscend?: boolean;
+}
+
+export function createGame({
+  playerCount,
+  requireKillToAscend = false,
+}: CreateGameOptions): Game {
+  return continueGame(createState(playerCount, requireKillToAscend));
 }
 
 export function rollDie(sides = 6): number {

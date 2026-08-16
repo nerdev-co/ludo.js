@@ -41,5 +41,7 @@ export interface GameState {
   readonly nextActionType: ActionType;
   readonly actions: readonly Action[];
   readonly playerTurn: number;
+  readonly kills: readonly number[];
+  readonly requireKillToAscend: boolean;
   readonly winner?: number;
 }
