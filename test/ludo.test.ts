@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
-import { createGame, rollDie } from '../src/index.ts';
-import type { Action } from '../src/types.ts';
+import { createGame, continueGame, rollDie } from '../src/index.ts';
+import type { Action, GameState } from '../src/types.ts';
 
 describe('ludo game', () => {
   it('returns a dice roll action for the first action type', () => {
@@ -49,5 +49,20 @@ describe('ludo game', () => {
         winner = true;
       }
     }
+  });
+
+  it('resumes an old persisted state that lacks the new rule fields', () => {
+    const state = createGame({ playerCount: 2 }).getState();
+    const { kills: _kills, requireKillToAscend: _requireKillToAscend, ...legacyState } = state;
+
+    const game = continueGame(legacyState as unknown as GameState);
+
+    expect(game.getState().kills).toEqual([0, 0]);
+    expect(game.getState().requireKillToAscend).toBe(false);
+
+    const rolled = game.update(game.rollDice([6]));
+
+    expect(rolled.getState().nextActionType).toBe('token action');
+    expect(rolled.getPossibleActions(0)).toHaveLength(4);
   });
 });

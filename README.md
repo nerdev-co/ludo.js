@@ -122,7 +122,9 @@ Throws on invalid input:
 ### `continueGame(state: GameState): Game`
 
 Resumes a game from an existing `GameState` — useful for persistence, replay, or AI
-evaluation. `update()` is built on it internally.
+evaluation. `update()` is built on it internally. States saved before `kills` and
+`requireKillToAscend` existed are still accepted: the missing fields are backfilled
+(`kills` = all zeros, rule disabled).
 
 ```ts
 import { createGame, continueGame } from './index.ts';

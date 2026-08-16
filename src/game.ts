@@ -153,8 +153,8 @@ function possibleActionFor({
 
   const heavenEnd = heavenPath[heavenPath.length - 1];
   const mayAscend =
-    state.requireKillToAscend === false ||
-    (state.kills[state.playerTurn] ?? 0) > 0;
+    state.requireKillToAscend !== true ||
+    (state.kills?.[state.playerTurn] ?? 0) > 0;
 
   if (heavenEnd !== undefined && coordEquals(heavenEnd, moveToCoord)) {
     if (!mayAscend) {

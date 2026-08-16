@@ -10,15 +10,30 @@ export interface Game {
   update(action: Action): Game;
 }
 
+function normalizeState(state: GameState): GameState {
+  const kills = state.players.map((_, i) => state.kills?.[i] ?? 0);
+  const requireKillToAscend = state.requireKillToAscend ?? false;
+
+  if (
+    kills.every((killsCount, i) => state.kills?.[i] === killsCount) &&
+    requireKillToAscend === state.requireKillToAscend
+  ) {
+    return state;
+  }
+
+  return { ...state, kills, requireKillToAscend };
+}
+
 export function continueGame(state: GameState): Game {
-  const rollDice = diceRollAction(state.playerTurn);
+  const normalized = normalizeState(state);
+  const rollDice = diceRollAction(normalized.playerTurn);
   const getPossibleActions = (dice: number): readonly TokenAction[] =>
-    findPossibleActions(state, dice);
-  const update = (action: Action): Game => continueGame(updateState(state, action));
+    findPossibleActions(normalized, dice);
+  const update = (action: Action): Game => continueGame(updateState(normalized, action));
 
   return Object.freeze({
-    getState: () => state,
-    nextActionType: () => state.nextActionType,
+    getState: () => normalized,
+    nextActionType: () => normalized.nextActionType,
     rollDice,
     getPossibleActions,
     update,
